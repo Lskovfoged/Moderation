@@ -1,4 +1,4 @@
-This script require the TamperMonkey browser extension:
+This script requires the TamperMonkey browser extension:
 
 Chrome: https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 
