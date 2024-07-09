@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Adds numpad shortcuts to category buttons on FunnyJunk
-// @author       You
+// @author       FOG
 // @match        https://funnyjunk.com/nsfw/*
 // @grant        none
 // ==/UserScript==

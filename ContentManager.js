@@ -3,7 +3,7 @@
 // @namespace    http://funnyjunk.com
 // @version      1.2
 // @description  Improves content manager and changes the UI
-// @author       Your Name
+// @author       FOG
 // @match        https://funnyjunk.com/*
 // @grant        none
 // ==/UserScript==
