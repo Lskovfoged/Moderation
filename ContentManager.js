@@ -3,14 +3,13 @@
 // @namespace    http://funnyjunk.com
 // @version      1.2
 // @description  Improves content manager and changes the UI
-// @author       FOG
+// @author       Your Name
 // @match        https://funnyjunk.com/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
-
 // Function to create a simple lightbox
 function createLightbox() {
     var lightbox = document.createElement('div');
@@ -59,12 +58,12 @@ function closeLightbox() {
 }
 
 // Function to open content in lightbox
-function openInLightbox(dataId) {
+function openInLightbox(dataId, isVideo) {
     var lightbox = document.getElementById('customLightbox');
     var content = document.getElementById('customLightboxContent');
 
-    // Check if the lightbox is already open with the same image
-    if (lightbox.style.display === 'flex' && content.firstChild && content.firstChild.tagName === 'IMG' && content.firstChild.src === dataId) {
+    // Check if the lightbox is already open with the same content
+    if (lightbox.style.display === 'flex' && content.firstChild && content.firstChild.getAttribute('data-type') === (isVideo ? 'video' : 'image') && content.firstChild.getAttribute('data-src') === dataId) {
         closeLightbox();
         return;
     }
@@ -72,20 +71,37 @@ function openInLightbox(dataId) {
     // Clear existing content
     content.innerHTML = '';
 
-    // Create new image element
-    var imageElement = document.createElement('img');
-    imageElement.src = dataId;
-    imageElement.style.maxWidth = '100%';
-    imageElement.style.maxHeight = '80vh';
-    imageElement.style.margin = 'auto';
+    if (isVideo) {
+        // Create new video element
+        var videoElement = document.createElement('video');
+        videoElement.src = dataId;
+        videoElement.controls = true;
+        videoElement.style.maxWidth = '100%';
+        videoElement.style.maxHeight = '80vh';
+        videoElement.style.margin = 'auto';
+        videoElement.setAttribute('data-type', 'video');
+        videoElement.setAttribute('data-src', dataId);
 
-    // Add click listener to the image to close the lightbox
-    imageElement.addEventListener('click', function() {
-        closeLightbox();
-    });
+        // Append video to lightbox content
+        content.appendChild(videoElement);
+    } else {
+        // Create new image element
+        var imageElement = document.createElement('img');
+        imageElement.src = dataId;
+        imageElement.style.maxWidth = '100%';
+        imageElement.style.maxHeight = '80vh';
+        imageElement.style.margin = 'auto';
+        imageElement.setAttribute('data-type', 'image');
+        imageElement.setAttribute('data-src', dataId);
 
-    // Append image to lightbox content
-    content.appendChild(imageElement);
+        // Add click listener to the image to close the lightbox
+        imageElement.addEventListener('click', function() {
+            closeLightbox();
+        });
+
+        // Append image to lightbox content
+        content.appendChild(imageElement);
+    }
 
     // Display lightbox
     lightbox.style.display = 'flex';
