@@ -10,102 +10,115 @@
 
 (function() {
     'use strict';
-// Function to create a simple lightbox
-function createLightbox() {
-    var lightbox = document.createElement('div');
-    lightbox.id = 'customLightbox';
-    lightbox.style.display = 'none';
-    lightbox.style.position = 'fixed';
-    lightbox.style.top = '0';
-    lightbox.style.left = '0';
-    lightbox.style.width = '100%';
-    lightbox.style.height = '100%';
-    lightbox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    lightbox.style.zIndex = '9999';
-    lightbox.style.overflow = 'auto';
-    lightbox.style.textAlign = 'center';
-    lightbox.style.justifyContent = 'center';
-    lightbox.style.alignItems = 'center';
 
-    var content = document.createElement('div');
-    content.id = 'customLightboxContent';
-    content.style.display = 'inline-block';
-    content.style.maxWidth = '80%';
-    content.style.position = 'relative';
+    // Function to create a simple lightbox
+    function createLightbox() {
+        var lightbox = document.createElement('div');
+        lightbox.id = 'customLightbox';
+        lightbox.style.display = 'none';
+        lightbox.style.position = 'fixed';
+        lightbox.style.top = '0';
+        lightbox.style.left = '0';
+        lightbox.style.width = '100%';
+        lightbox.style.height = '100%';
+        lightbox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        lightbox.style.zIndex = getMaxZIndex() + 1; // Ensure lightbox is on top
+        lightbox.style.overflow = 'auto';
+        lightbox.style.textAlign = 'center';
+        lightbox.style.justifyContent = 'center';
+        lightbox.style.alignItems = 'center';
 
-    lightbox.appendChild(content);
+        var content = document.createElement('div');
+        content.id = 'customLightboxContent';
+        content.style.display = 'inline-block';
+        content.style.maxWidth = '80%';
+        content.style.position = 'relative';
 
-    lightbox.addEventListener('click', function(event) {
-        if (event.target === lightbox) {
-            closeLightbox();
-        }
-    });
+        lightbox.appendChild(content);
 
-    document.body.appendChild(lightbox);
-
-    return {
-        lightbox: lightbox,
-        content: content
-    };
-}
-
-// Function to close the lightbox
-function closeLightbox() {
-    var lightbox = document.getElementById('customLightbox');
-    var content = document.getElementById('customLightboxContent');
-    lightbox.style.display = 'none';
-    content.innerHTML = ''; // Clear content
-}
-
-// Function to open content in lightbox
-function openInLightbox(dataId, isVideo) {
-    var lightbox = document.getElementById('customLightbox');
-    var content = document.getElementById('customLightboxContent');
-
-    // Check if the lightbox is already open with the same content
-    if (lightbox.style.display === 'flex' && content.firstChild && content.firstChild.getAttribute('data-type') === (isVideo ? 'video' : 'image') && content.firstChild.getAttribute('data-src') === dataId) {
-        closeLightbox();
-        return;
-    }
-
-    // Clear existing content
-    content.innerHTML = '';
-
-    if (isVideo) {
-        // Create new video element
-        var videoElement = document.createElement('video');
-        videoElement.src = dataId;
-        videoElement.controls = true;
-        videoElement.style.maxWidth = '100%';
-        videoElement.style.maxHeight = '80vh';
-        videoElement.style.margin = 'auto';
-        videoElement.setAttribute('data-type', 'video');
-        videoElement.setAttribute('data-src', dataId);
-
-        // Append video to lightbox content
-        content.appendChild(videoElement);
-    } else {
-        // Create new image element
-        var imageElement = document.createElement('img');
-        imageElement.src = dataId;
-        imageElement.style.maxWidth = '100%';
-        imageElement.style.maxHeight = '80vh';
-        imageElement.style.margin = 'auto';
-        imageElement.setAttribute('data-type', 'image');
-        imageElement.setAttribute('data-src', dataId);
-
-        // Add click listener to the image to close the lightbox
-        imageElement.addEventListener('click', function() {
-            closeLightbox();
+        lightbox.addEventListener('click', function(event) {
+            if (event.target === lightbox) {
+                closeLightbox();
+            }
         });
 
-        // Append image to lightbox content
-        content.appendChild(imageElement);
+        document.body.appendChild(lightbox);
+
+        return {
+            lightbox: lightbox,
+            content: content
+        };
     }
 
-    // Display lightbox
-    lightbox.style.display = 'flex';
-}
+    // Function to close the lightbox
+    function closeLightbox() {
+        var lightbox = document.getElementById('customLightbox');
+        var content = document.getElementById('customLightboxContent');
+        lightbox.style.display = 'none';
+        content.innerHTML = ''; // Clear content
+    }
+
+    // Function to open content in lightbox
+    function openInLightbox(dataId, isVideo) {
+        var lightbox = document.getElementById('customLightbox');
+        var content = document.getElementById('customLightboxContent');
+
+        // Ensure lightbox is on top of everything
+        lightbox.style.zIndex = getMaxZIndex() + 1;
+
+        // Check if the lightbox is already open with the same content
+        if (lightbox.style.display === 'flex' && content.firstChild && content.firstChild.getAttribute('data-type') === (isVideo ? 'video' : 'image') && content.firstChild.getAttribute('data-src') === dataId) {
+            closeLightbox();
+            return;
+        }
+
+        // Clear existing content
+        content.innerHTML = '';
+
+        if (isVideo) {
+            // Create new video element
+            var videoElement = document.createElement('video');
+            videoElement.src = dataId;
+            videoElement.controls = true;
+            videoElement.style.maxWidth = '100%';
+            videoElement.style.maxHeight = '80vh';
+            videoElement.style.margin = 'auto';
+            videoElement.setAttribute('data-type', 'video');
+            videoElement.setAttribute('data-src', dataId);
+
+            // Append video to lightbox content
+            content.appendChild(videoElement);
+        } else {
+            // Create new image element
+            var imageElement = document.createElement('img');
+            imageElement.src = dataId;
+            imageElement.style.maxWidth = '100%';
+            imageElement.style.maxHeight = '80vh';
+            imageElement.style.margin = 'auto';
+            imageElement.setAttribute('data-type', 'image');
+            imageElement.setAttribute('data-src', dataId);
+
+            // Add click listener to the image to close the lightbox
+            imageElement.addEventListener('click', function() {
+                closeLightbox();
+            });
+
+            // Append image to lightbox content
+            content.appendChild(imageElement);
+        }
+
+        // Display lightbox
+        lightbox.style.display = 'flex';
+    }
+
+    // Function to get the maximum z-index in the document
+    function getMaxZIndex() {
+        var elements = document.querySelectorAll('*');
+        var maxZ = Math.max.apply(null, Array.from(elements).map(function(element) {
+            return parseFloat(window.getComputedStyle(element).zIndex) || 1;
+        }));
+        return maxZ;
+    }
 
     // Function to modify HTML structure as needed
     function modifyHTML(conRows) {
@@ -387,8 +400,8 @@ function openInLightbox(dataId, isVideo) {
         }
     `;
 
+    // Add custom styles to the document head
     var styleElement = document.createElement('style');
-    styleElement.textContent = customStyles;
+    styleElement.innerHTML = customStyles;
     document.head.appendChild(styleElement);
-
 })();
