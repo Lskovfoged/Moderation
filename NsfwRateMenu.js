@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         FunnyJunk NSFW rating shortcuts
+// @name         FunnyJunk Numpad Shortcut
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Adds numpad shortcuts to category buttons on FunnyJunk
-// @author       FOG
+// @author       You
 // @match        https://funnyjunk.com/nsfw/*
 // @grant        none
 // ==/UserScript==
@@ -30,21 +30,22 @@
             // Get skinGuideSpan separately and exclude from style change
             let skinGuideSpan = document.getElementById('skinGuide');
             if (skinGuideSpan) {
+                // Create and style the shortKey div for span#skinGuide
                 let shortKeyDiv = document.createElement('div');
                 shortKeyDiv.classList.add('shortKey');
-                shortKeyDiv.textContent = 9; // Since 9 corresponds to 'next'
+                shortKeyDiv.textContent = '9'; // Since 9 corresponds to 'next'
                 shortKeyDiv.style.display = 'block';
                 shortKeyDiv.style.background = 'none 0% 0% / auto repeat scroll padding-box border-box rgb(32, 32, 32)';
                 shortKeyDiv.style.font = '400 10px arial, sans-serif';
-                shortKeyDiv.style.cursor = 'pointer';
-                shortKeyDiv.style.color = 'rgb(241, 241, 241)';
-                shortKeyDiv.style.position = 'absolute';
-                shortKeyDiv.style.left = '50%'; // Center horizontally
-                shortKeyDiv.style.transform = 'translateX(-50%)'; // Adjust for centering
-                shortKeyDiv.style.top = '-50%'; // Move upwards by half of its own height
+                shortKeyDiv.style.left = '36.5px'; // Adjusted for specific horizontal alignment
                 shortKeyDiv.style.padding = '0px 1px';
+                shortKeyDiv.style.position = 'absolute';
+                shortKeyDiv.style.top = '-4px'; // Adjusted for specific vertical alignment
+                shortKeyDiv.style.cursor = 'pointer';
+                shortKeyDiv.style.textAlign = 'center';
+                shortKeyDiv.style.color = 'rgb(241, 241, 241)';
 
-                // Append shortKeyDiv before the text content of span
+                // Append shortKeyDiv to skinGuideSpan
                 skinGuideSpan.insertBefore(shortKeyDiv, skinGuideSpan.firstChild);
             }
 
@@ -78,13 +79,13 @@
                         let shortKeyDiv = document.createElement('div');
                         shortKeyDiv.classList.add('shortKey');
                         shortKeyDiv.textContent = reverseMappings[catBlockId];
-                        shortKeyDiv.style.display = 'block';
+                        shortKeyDiv.style.display = 'inline-block';
                         shortKeyDiv.style.background = 'none 0% 0% / auto repeat scroll padding-box border-box rgb(32, 32, 32)';
                         shortKeyDiv.style.font = '400 10px arial, sans-serif';
                         shortKeyDiv.style.cursor = 'pointer';
                         shortKeyDiv.style.color = 'rgb(241, 241, 241)';
                         shortKeyDiv.style.position = 'absolute';
-                        shortKeyDiv.style.left = '50%'; // Center horizontally
+                        shortKeyDiv.style.left = '50%'; // Center horizontally relative to parent
                         shortKeyDiv.style.transform = 'translateX(-50%)'; // Adjust for centering
                         shortKeyDiv.style.top = '-50%'; // Move upwards by half of its own height
                         shortKeyDiv.style.padding = '0px 1px';
@@ -93,9 +94,15 @@
                         span.insertBefore(shortKeyDiv, span.firstChild);
                     }
 
+                    // Preserve the original onclick event handler
+                    const originalOnClick = span.onclick;
+
                     // Add event listener to span element
-                    span.addEventListener('click', function() {
-                        admintools.catBlock(catBlockId, this); // Call the original function
+                    span.addEventListener('click', function(event) {
+                        if (originalOnClick) {
+                            originalOnClick.call(this, event); // Call the original onclick handler
+                        }
+                        admintools.catBlock(catBlockId, this); // Call the admintools function
                     });
                 }
             });
@@ -110,7 +117,7 @@
                         let catBlockId = numpadMappings[key];
                         let catBlockSpan = catControls.querySelector(`span[data-id="${catBlockId}"]`);
                         if (catBlockSpan) {
-                            admintools.catBlock(catBlockId, catBlockSpan); // Call the original function
+                            catBlockSpan.click(); // Trigger the click event for the category button
                         }
                     }
                 }
