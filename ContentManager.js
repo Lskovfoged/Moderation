@@ -16,7 +16,6 @@
             overlayBgColor: "#000",
             overlayOpacity: .8,
             fixedNavigation: !1,
-            imageLoading: "/site/js/sb/loading.gif",
             imageBtnPrev: "/site/js/sb/prevlabel.gif",
             imageBtnNext: "/site/js/sb/nextlabel.gif",
             imageBtnClose: "/site/js/sb/closelabel.gif",
@@ -56,11 +55,6 @@
                             <div id="lightbox-nav">
                                 <a href="#" id="lightbox-nav-btnPrev"></a>
                                 <a href="#" id="lightbox-nav-btnNext"></a>
-                            </div>
-                            <div id="lightbox-loading">
-                                <a href="#" id="lightbox-loading-link">
-                                    <img src="${settings.imageLoading}">
-                                </a>
                             </div>
                         </div>
                     </div>
