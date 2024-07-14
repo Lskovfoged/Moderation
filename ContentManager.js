@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         FOGs Content Manager Upgrades
 // @namespace    http://funnyjunk.com
-// @version      1.2
+// @version      1.5
 // @description  Improves content manager and changes the UI
 // @author       FOG
 // @match        https://funnyjunk.com/*
@@ -11,157 +11,214 @@
 (function() {
     'use strict';
 
-    // Function to create a simple lightbox
-    function createLightbox() {
-        var lightbox = document.createElement('div');
-        lightbox.id = 'customLightbox';
-        lightbox.style.display = 'none';
-        lightbox.style.position = 'fixed';
-        lightbox.style.top = '0';
-        lightbox.style.left = '0';
-        lightbox.style.width = '100%';
-        lightbox.style.height = '100%';
-        lightbox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        lightbox.style.zIndex = getMaxZIndex() + 1; // Ensure lightbox is on top
-        lightbox.style.overflow = 'auto';
-        lightbox.style.textAlign = 'center';
-        lightbox.style.justifyContent = 'center';
-        lightbox.style.alignItems = 'center';
-
-        var content = document.createElement('div');
-        content.id = 'customLightboxContent';
-        content.style.display = 'inline-block';
-        content.style.maxWidth = '80%';
-        content.style.position = 'relative';
-
-        lightbox.appendChild(content);
-
-        lightbox.addEventListener('click', function(event) {
-            if (event.target === lightbox) {
-                closeLightbox();
-            }
-        });
-
-        document.body.appendChild(lightbox);
-
-        return {
-            lightbox: lightbox,
-            content: content
+    function makeLightBox(a) {
+        const settings = {
+            overlayBgColor: "#000",
+            overlayOpacity: .8,
+            fixedNavigation: !1,
+            imageLoading: "/site/js/sb/loading.gif",
+            imageBtnPrev: "/site/js/sb/prevlabel.gif",
+            imageBtnNext: "/site/js/sb/nextlabel.gif",
+            imageBtnClose: "/site/js/sb/closelabel.gif",
+            imageBlank: "/site/js/sb/lightbox-blank.gif",
+            containerBorderSize: 10,
+            containerResizeSpeed: 0,
+            txtImage: "Image",
+            txtOf: "of",
+            keyToClose: "c",
+            keyToPrev: "p",
+            keyToNext: "n",
+            imageArray: [],
+            activeImage: 0,
+            autoplay: 3,
+            sound: 4
         };
-    }
 
-    // Function to close the lightbox
-    function closeLightbox() {
-        var lightbox = document.getElementById('customLightbox');
-        var content = document.getElementById('customLightboxContent');
-        lightbox.style.display = 'none';
-        content.innerHTML = ''; // Clear content
-    }
-
-    // Function to open content in lightbox
-    function openInLightbox(dataId, isVideo) {
-        var lightbox = document.getElementById('customLightbox');
-        var content = document.getElementById('customLightboxContent');
-
-        // Ensure lightbox is on top of everything
-        lightbox.style.zIndex = getMaxZIndex() + 1;
-
-        // Check if the lightbox is already open with the same content
-        if (lightbox.style.display === 'flex' && content.firstChild && content.firstChild.getAttribute('data-type') === (isVideo ? 'video' : 'image') && content.firstChild.getAttribute('data-src') === dataId) {
-            closeLightbox();
-            return;
+        function initializeLightBox(a) {
+            $("embed, object, select").css({visibility: "hidden"});
+            createLightBox();
+            settings.imageArray.length = 0;
+            settings.activeImage = 0;
+            settings.imageArray.push([a, "", a, "", ""]);
+            showImage();
         }
 
-        // Clear existing content
-        content.innerHTML = '';
-
-        if (isVideo) {
-            // Create new video element
-            var videoElement = document.createElement('video');
-            videoElement.src = dataId;
-            videoElement.controls = true;
-            videoElement.style.maxWidth = '100%';
-            videoElement.style.maxHeight = '80vh';
-            videoElement.style.margin = 'auto';
-            videoElement.setAttribute('data-type', 'video');
-            videoElement.setAttribute('data-src', dataId);
-
-            // Append video to lightbox content
-            content.appendChild(videoElement);
-        } else {
-            // Create new image element
-            var imageElement = document.createElement('img');
-            imageElement.src = dataId;
-            imageElement.style.maxWidth = '100%';
-            imageElement.style.maxHeight = '80vh';
-            imageElement.style.margin = 'auto';
-            imageElement.setAttribute('data-type', 'image');
-            imageElement.setAttribute('data-src', dataId);
-
-            // Add click listener to the image to close the lightbox
-            imageElement.addEventListener('click', function() {
-                closeLightbox();
+        function createLightBox() {
+            let a = $(".safeBlur");
+            if (a.length) return a.removeClass("safeBlur"), !1;
+            $(".onHoverImage").remove();
+            $("body").append(`
+                <div id="jquery-overlay"></div>
+                <div id="jquery-lightbox">
+                    <div id="lightbox-container-image-box">
+                        <div id="lightbox-container-image">
+                            <img id="lightbox-image">
+                            <div id="lightbox-nav">
+                                <a href="#" id="lightbox-nav-btnPrev"></a>
+                                <a href="#" id="lightbox-nav-btnNext"></a>
+                            </div>
+                            <div id="lightbox-loading">
+                                <a href="#" id="lightbox-loading-link">
+                                    <img src="${settings.imageLoading}">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lightbox-container-image-data-box">
+                        <div id="lightbox-container-image-data">
+                            <div id="lightbox-image-details">
+                                <span id="lightbox-image-details-caption"></span>
+                                <span id="lightbox-image-details-currentNumber"></span>
+                            </div>
+                            <div id="lightbox-secNav">
+                                <a href="#" id="lightbox-secNav-btnClose">
+                                    <img src="${settings.imageBtnClose}">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>`);
+            $("#jquery-overlay, #jquery-lightbox").css("z-index", 9999);
+            let b = getPageDimensions();
+            $("#jquery-overlay").css({backgroundColor: settings.overlayBgColor, opacity: settings.overlayOpacity, width: b[0], height: b[1]}).show();
+            let c = getScrollPosition();
+            $("#jquery-lightbox").css({top: c[1] + b[3] / 10, left: c[0]}).show();
+            $("#jquery-overlay, #jquery-lightbox").click(closeLightBox);
+            $("#lightbox-loading-link, #lightbox-secNav-btnClose").click(closeLightBox);
+            $(window).resize(function() {
+                let a = getPageDimensions();
+                $("#jquery-overlay").css({width: a[0], height: a[1]});
+                let b = getScrollPosition();
+                $("#jquery-lightbox").css({top: b[1] + a[3] / 10, left: b[0]});
             });
-
-            // Append image to lightbox content
-            content.appendChild(imageElement);
         }
 
-        // Display lightbox
-        lightbox.style.display = 'flex';
-    }
+        function showImage() {
+            $("#lightbox-loading").show();
+            settings.fixedNavigation ? $("#lightbox-image, #lightbox-container-image-data-box, #lightbox-image-details-currentNumber").hide() : $("#lightbox-image, #lightbox-nav, #lightbox-nav-btnPrev, #lightbox-nav-btnNext, #lightbox-container-image-data-box, #lightbox-image-details-currentNumber").hide();
+            let a = settings.imageArray[settings.activeImage][0],
+                b = getFileType(a),
+                c = settings.imageArray[0][settings.sound] ? "" : "muted",
+                d = settings.imageArray[0][settings.autoplay] ? "autoplay" : "";
+            ".mp4" === b ? ($("#lightbox-image").replaceWith(`<div id="lightbox-image">
+                <video style="width: 100%" src="${a}" controls ${d} ${c}></video>
+            </div>`), resizeLightBox(600, 400, !0)) : function() {
+                let b = new Image;
+                b.onload = function() {
+                    $("#lightbox-image").attr("src", settings.imageArray[settings.activeImage][0]);
+                    resizeLightBox(b.width, b.height);
+                    b.onload = null;
+                }, b.src = settings.imageArray[settings.activeImage][0];
+            }();
+        }
 
-    // Function to get the maximum z-index in the document
-    function getMaxZIndex() {
-        var elements = document.querySelectorAll('*');
-        var maxZ = Math.max.apply(null, Array.from(elements).map(function(element) {
-            return parseFloat(window.getComputedStyle(element).zIndex) || 1;
-        }));
-        return maxZ;
+        function resizeLightBox(a, b, c = !1) {
+            let d = $("#lightbox-container-image-box"),
+                e = d.width(),
+                f = d.height(),
+                g = a + 2 * settings.containerBorderSize,
+                h = b + 2 * settings.containerBorderSize;
+            $("#lightbox-loading").hide();
+            d.animate({width: g, height: h}, settings.containerResizeSpeed, function() {
+                showLightBoxContent();
+            });
+            e === g && f === h ? sleep(c ? 250 : 100) : $("#lightbox-container-image-data-box").css({width: a});
+            $("#lightbox-nav-btnPrev, #lightbox-nav-btnNext").css({height: b + 2 * settings.containerBorderSize});
+        }
+
+        function showLightBoxContent() {
+            $("#lightbox-image").show();
+            showImageDetails();
+        }
+
+        function showImageDetails() {
+            $("#lightbox-container-image-data-box").show();
+            $("#lightbox-image-details-caption").hide();
+        }
+
+        function closeLightBox() {
+            $("#jquery-lightbox").remove();
+            $("#jquery-overlay").fadeOut(function() {
+                $(this).remove();
+            });
+            $("embed, object, select").css({visibility: "visible"});
+        }
+
+        function getPageDimensions() {
+            let a, b;
+            if (window.innerHeight && window.scrollMaxY) a = window.innerWidth + window.scrollMaxX, b = window.innerHeight + window.scrollMaxY;
+            else if (document.body.scrollHeight > document.body.offsetHeight) a = document.body.scrollWidth, b = document.body.scrollHeight;
+            else a = document.body.offsetWidth, b = document.body.offsetHeight;
+            let c, d;
+            if (self.innerHeight) c = document.documentElement.clientWidth ? document.documentElement.clientWidth : self.innerWidth, d = self.innerHeight;
+            else if (document.documentElement && document.documentElement.clientHeight) c = document.documentElement.clientWidth, d = document.documentElement.clientHeight;
+            else if (document.body) c = document.body.clientWidth, d = document.body.clientHeight;
+            let e = b < d ? d : b,
+                f = a < c ? c : a;
+            return [e, f, c, d];
+        }
+
+        function getScrollPosition() {
+            let a, b;
+            if (self.pageYOffset) b = self.pageYOffset, a = self.pageXOffset;
+            else if (document.documentElement && document.documentElement.scrollTop) b = document.documentElement.scrollTop, a = document.documentElement.scrollLeft;
+            else if (document.body) b = document.body.scrollTop, a = document.body.scrollLeft;
+            return [a, b];
+        }
+
+        function getFileType(a) {
+            let b = a.substr(1 + a.lastIndexOf("/")).split("?")[0];
+            return b = b.split("#")[0], b.substr(b.lastIndexOf("."));
+        }
+
+        function sleep(a) {
+            for (let b = (new Date).getTime(), c = b; c < b + a;) c = (new Date).getTime();
+        }
+
+        initializeLightBox(a);
     }
 
     // Function to modify HTML structure as needed
-    function modifyHTML(conRows) {
-        conRows.forEach(function(conRow) {
-            var conFlexRow = conRow.querySelector('.conFlexRow.conBigRow');
-            if (!conFlexRow) return;
+    function modifyHTML() {
+        console.log('modifyHTML called');
 
-            var viewU2 = conFlexRow.querySelector('.viewU2');
-            if (viewU2) {
-                viewU2.remove();
-
-                var conImg = conFlexRow.querySelector('.conImg');
-                if (conImg) {
-                    var dataId = viewU2.getAttribute('data-id');
-                    var isVideo = dataId.toLowerCase().endsWith('.mp4');
-
-                    conImg.addEventListener('click', function() {
-                        if (isVideo) {
-                            openInLightbox(dataId, true);
-                        } else {
-                            openInLightbox(dataId, false);
-                        }
-                    });
-                }
-            }
+        // Show hidden elements with class .showHidden
+        var elements = document.querySelectorAll('.showHidden');
+        elements.forEach(function(element) {
+            element.style.display = 'block';
         });
+
+        // Replace existing click event handlers for .conImg elements
+        var conImgs = document.querySelectorAll('.conRow .conImg');
+        console.log('Found conImg elements:', conImgs.length);
+        conImgs.forEach(function(img) {
+            // Remove existing click event handler
+            img.removeEventListener
+
+            // Add new click event handler
+            img.addEventListener('click', newClickEvent);
+        });
+
+        // Update SL.clickableClasses if necessary
+        if (!SL.clickableClasses.includes("conRowHolder")) {
+            SL.clickableClasses.push("conRowHolder");
+        }
 
         // Add click event listener to clear selection
         var clearSelection = document.querySelector('.conCount');
         if (clearSelection) {
             clearSelection.addEventListener('click', function() {
                 var checkboxes = document.querySelectorAll('#conHolder input[type="checkbox"]');
-                var checkboxesArray = Array.from(checkboxes);
                 var batchSize = 100; // Adjust batch size based on performance testing
 
                 function processBatch(startIndex) {
-                    var endIndex = Math.min(startIndex + batchSize, checkboxesArray.length);
+                    var endIndex = Math.min(startIndex + batchSize, checkboxes.length);
 
                     for (var i = startIndex; i < endIndex; i++) {
-                        checkboxesArray[i].checked = false;
+                        checkboxes[i].checked = false;
                     }
 
-                    if (endIndex < checkboxesArray.length) {
+                    if (endIndex < checkboxes.length) {
                         // Schedule next batch after a short delay
                         setTimeout(function() {
                             processBatch(endIndex);
@@ -181,25 +238,31 @@
         }
     }
 
+    // New click event handler function
+    function newClickEvent() {
+        var dataId = this.getAttribute('data-id');
+        console.log('Clicked image with data-id:', dataId);
+        makeLightBox(dataId); // Assuming makeLightBox is correctly implemented
+    }
+
     // Function to handle mutations and modify HTML structure
     function handleMutations(mutationsList, observer) {
-        for (var mutation of mutationsList) {
-            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                var conRowElements = document.querySelectorAll('.conRow');
-                if (conRowElements.length > 0) {
-                    modifyHTML(conRowElements);
-                    SL.clickableClasses.push("conRowHolder");
-
-                    // Select all elements with class .showHidden
-                    var elements = document.querySelectorAll('.showHidden');
-
-                    // Iterate over each element and trigger a click event
-                    elements.forEach(function(element) {
-                        element.click(); // Trigger the click event
-                    });
-                }
+        mutationsList.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                var addedNodes = Array.from(mutation.addedNodes);
+                addedNodes.forEach(function(node) {
+                    // Check if node or any of its descendants are .conRow elements
+                    if (node.classList && node.classList.contains('conRow')) {
+                        modifyHTML();
+                    } else if (node.querySelectorAll) {
+                        var conRowDescendants = node.querySelectorAll('.conRow');
+                        if (conRowDescendants.length > 0) {
+                            modifyHTML();
+                        }
+                    }
+                });
             }
-        }
+        });
     }
 
     // Initialize MutationObserver to watch for changes in the document body
@@ -208,179 +271,12 @@
 
     // Wait for the page to load before initial modification
     window.addEventListener('load', function() {
-        createLightbox();
-        var conRowElements = document.querySelectorAll('.conRow');
-        if (conRowElements.length > 0) {
-            modifyHTML(conRowElements);
-        }
+        console.log('Page loaded, calling modifyHTML');
+        modifyHTML();
     });
 
     // Apply custom CSS styles
     var customStyles = `
-        /* Adjustments for .conHolder */
-        div.conHolder {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            padding: 10px;
-            background-color: rgb(40, 40, 40);
-        }
-
-        /* Adjustments for .conRow */
-        div.conRow {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center; /* Changed to center the content */
-            height: 175px;
-            width: 175px;
-            margin: 10px;
-            background-color: rgb(40, 40, 40);
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Adjustments for .conFlexRow.conBigRow */
-        div.conRow .conFlexRow.conBigRow {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Changed to center the content */
-            align-items: center; /* Center the items horizontally */
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-            background-color: rgb(40, 40, 40);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Adjustments for img.conImg */
-        div.conRow img.conImg {
-            display: block;
-            background-color: rgb(51, 0, 62);
-            height: auto;
-            max-width: 100%;
-            margin: 0 auto;
-        }
-
-        /* Adjustments for input.conCheck */
-        div.conRow input.conCheck {
-            outline: none;
-            cursor: pointer;
-            height: 20px;
-            width: 20px;
-            background-color: rgb(43, 43, 43);
-            color: rgb(255, 255, 255);
-            font: 400 13.3333px Arial;
-            position: absolute;
-            top: 5px;
-            right: 5px;
-        }
-
-        /* Adjustments for .repostKT, .clockNow, .isRe, .delKT */
-        .repostKT, .clockNow, .isRe, .delKT {
-            position: absolute;
-            cursor: pointer;
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-            background-color: rgb(40, 40, 40);
-        }
-
-        .repostKT {
-            top: 5px;
-            right: 84%;
-        }
-
-        .clockNow {
-            top: 30px;
-            right: 90%;
-            transform: translateX(50%);
-        }
-
-        .isRe {
-            top: 60px;
-            right: 10px;
-            transform: translateY(-50%);
-        }
-
-        .delKT {
-            top: 40px;
-            right: 15px;
-            transform: translateY(-50%);
-        }
-
-        /* Adjustments for div.conRelease */
-        div.conRow div.conRelease {
-            display: block;
-            background-color: rgb(64, 64, 64);
-            margin: 5px 0;
-            width: 120px;
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-        }
-
-        /* Adjustments for div.thumbRow */
-        div.conRow div.thumbRow {
-            display: block;
-            width: 150px;
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-            background-color: rgb(40, 40, 40);
-            margin-top: 5px;
-        }
-
-        /* Adjustments for div.conChan2 */
-        div.conRow div.conChan2 {
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Changed to center the content */
-            align-items: center; /* Center the items horizontally */
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(241, 241, 241);
-            background-color: rgb(40, 40, 40);
-        }
-
-        /* Adjustments for a.chanSearchBox */
-        div.conRow a.chanSearchBox {
-            color: rgb(170, 170, 170);
-            text-decoration: none solid rgb(170, 170, 170);
-            background-color: rgb(25, 1, 45);
-            border-radius: 2px;
-            display: inline-block;
-            margin: 2px;
-            padding: 2px 3px;
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            border: 1px solid rgb(82, 16, 118);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            transition: font-size 0.2s;
-        }
-
-        /* Adjustments for a.conRowA */
-        div.conRow a.conRowA {
-            display: block;
-            width: 100%;
-            font: 400 14px arial, sans-serif;
-            text-align: center;
-            color: rgb(170, 170, 170);
-            text-decoration: none solid rgb(170, 170, 170);
-            background-color: rgb(40, 40, 40);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: font-size 0.2s;
-        }
-
         /* Adjustments for .conCount */
         .conCount {
             background-color: rgb(58, 58, 58);
