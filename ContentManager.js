@@ -16,10 +16,7 @@
             overlayBgColor: "#000",
             overlayOpacity: .8,
             fixedNavigation: !1,
-            imageBtnPrev: "/site/js/sb/prevlabel.gif",
-            imageBtnNext: "/site/js/sb/nextlabel.gif",
             imageBtnClose: "/site/js/sb/closelabel.gif",
-            imageBlank: "/site/js/sb/lightbox-blank.gif",
             containerBorderSize: 10,
             containerResizeSpeed: 0,
             txtImage: "Image",
@@ -52,10 +49,6 @@
                     <div id="lightbox-container-image-box">
                         <div id="lightbox-container-image">
                             <img id="lightbox-image">
-                            <div id="lightbox-nav">
-                                <a href="#" id="lightbox-nav-btnPrev"></a>
-                                <a href="#" id="lightbox-nav-btnNext"></a>
-                            </div>
                         </div>
                     </div>
                     <div id="lightbox-container-image-data-box">
@@ -117,7 +110,6 @@
                 showLightBoxContent();
             });
             e === g && f === h ? sleep(c ? 250 : 100) : $("#lightbox-container-image-data-box").css({width: a});
-            $("#lightbox-nav-btnPrev, #lightbox-nav-btnNext").css({height: b + 2 * settings.containerBorderSize});
         }
 
         function showLightBoxContent() {
@@ -256,6 +248,13 @@
                     }
                 });
             }
+            // Select all elements with class .showHidden
+                    var elements = document.querySelectorAll('.showHidden');
+
+                    // Iterate over each element and trigger a click event
+                    elements.forEach(function(element) {
+                        element.click(); // Trigger the click event
+                    });
         });
     }
 
