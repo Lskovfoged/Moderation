@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         FJme.me Rating Review
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.5
 // @description  Adds button to mark range as reviewed and open range in new tabs
 // @author       You
 // @match        https://fjme.me/mods/ratings/*
@@ -14,7 +14,7 @@
 
     // Hardcoded Bearer token (Manually retrieved)
     const BEARER_TOKEN = 'PASTE YOUR TOKEN HERE';
-
+    
     // Function to add the "Open Range in New Tabs" button and its functionality
     function addOpenTabsButton() {
         const referenceButton = document.querySelector('#changeDateRange');
@@ -30,6 +30,11 @@
             button.addEventListener('click', function() {
                 document.querySelectorAll('.panel-heading > a[href*="funnyjunk"]').forEach(function(link) {
                     const url = link.href;
+                    // Skip links that contain '/nsfw/'
+                    if (url.includes('/nsfw/')) {
+                        console.log(`Skipping NSFW URL: ${url}`);
+                        return;
+                    }
                     console.log(`Opening URL: ${url}`);
                     window.open(url, '_blank');
                 });
@@ -54,9 +59,17 @@
                 contentLinks.forEach(link => {
                     const url = link.getAttribute('href');
                     const fjcontent = url.split('/').pop();
+                    const panelHeading = link.closest('.panel-heading');
                     const panelBody = link.closest('.panel').querySelector('.panel-body');
 
-                    // Ensure the content review check is accurate
+                    // Skip if panel-heading URL has NSFW
+                    const hasNSFW = panelHeading.querySelector('a[href*="/nsfw/"]');
+                    if (hasNSFW) {
+                        console.log(`Skipping NSFW content: ${url}`);
+                        return;
+                    }
+
+                    // Check if the content is already reviewed
                     const reviewed = panelBody.querySelectorAll('table tbody tr.success').length > 0;
 
                     if (fjcontent && !reviewed) {
