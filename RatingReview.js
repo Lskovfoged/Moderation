@@ -8,6 +8,7 @@
 // @match        https://funnyjunk.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_deleteValue
 // @grant        GM_notification
 // @run-at       document-end
 // ==/UserScript==
@@ -25,7 +26,7 @@
         const span = document.createElement('span');
         span.className = 'smallLeftMenu smallLines mIte tpO';
         span.textContent = 'Get Review Token';
-        span.title = 'Rating Review Token';
+        span.title = 'Get Review Token';
         span.style.cursor = 'pointer';
 
         span.addEventListener('click', function() {
@@ -44,9 +45,31 @@
         topME.appendChild(span);
     }
 
+    function addTokenDeleteButton() {
+        const topME = document.querySelector('#topME');
+        if (!topME) return;
+
+        const span = document.createElement('span');
+        span.className = 'smallLeftMenu smallLines mIte tpO';
+        span.textContent = 'Delete Review Token';
+        span.title = 'Delete Review Token';
+        span.style.cursor = 'pointer';
+        span.style.color = "#820600";
+
+        span.addEventListener('click', function() {
+            GM_deleteValue(TOKEN_STORAGE_KEY);
+            flashMessage.showSuccess(`Token deleted`);
+            console.log(`Token ${TOKEN_STORAGE_KEY} deleted`);
+            GM_notification('PT_memeToken deleted successfully!', 'Success');
+        });
+
+        topME.appendChild(span);
+    }
+
     if (window.location.href.startsWith('https://funnyjunk.com')) {
         console.log('Adding token retrieval button to funnyjunk.com');
         addTokenRetrievalButton();
+        addTokenDeleteButton();
         return;
     }
 
@@ -132,7 +155,7 @@
                     const BEARER_TOKEN = GM_getValue(TOKEN_STORAGE_KEY);
 
                     if (!BEARER_TOKEN) {
-                        alert('Bearer token not found. Please visit funnyjunk.com and click "Get Review Token" button.');
+                        alert('Review token not found. Please visit funnyjunk.com and click "Get Review Token" button.');
                         document.body.style.cursor = ''; // Change cursor back
                         return;
                     }
