@@ -116,6 +116,17 @@
                 button.textContent = 'Mark Range as Reviewed';
 
                 button.addEventListener('click', function() {
+                    // Retrieve the Bearer token from Tampermonkey storage
+                    const BEARER_TOKEN = GM_getValue(TOKEN_STORAGE_KEY);
+
+                    if (!BEARER_TOKEN) {
+                        alert('Review token not found. Please visit funnyjunk.com and click "Get Review Token" button.');
+                        document.body.style.cursor = ''; // Change cursor back
+                        return;
+                    }
+
+                    console.log('Bearer token retrieved successfully.');
+                    
                     document.body.style.cursor = 'wait'; // Change cursor to loading icon
 
                     const contentLinks = document.querySelectorAll('.panel-heading > a[href*="/mods/contentInfo/"]');
@@ -143,6 +154,7 @@
                     });
 
                     if (toReview.length === 0) {
+                        alert('No content to mark as reviewed.');
                         console.log('No content to mark as reviewed.');
                         document.body.style.cursor = ''; // Change cursor back
                         return;
@@ -150,17 +162,6 @@
 
                     let requestsCompleted = 0;
                     const totalRequests = toReview.length;
-
-                    // Retrieve the Bearer token from Tampermonkey storage
-                    const BEARER_TOKEN = GM_getValue(TOKEN_STORAGE_KEY);
-
-                    if (!BEARER_TOKEN) {
-                        alert('Review token not found. Please visit funnyjunk.com and click "Get Review Token" button.');
-                        document.body.style.cursor = ''; // Change cursor back
-                        return;
-                    }
-
-                    console.log('Bearer token retrieved successfully.');
 
                         toReview.forEach(fjcontent => {
                             const requestUrl = `/api/ratings/removeNeedsReview/${fjcontent}`;
