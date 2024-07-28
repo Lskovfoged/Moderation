@@ -2,7 +2,7 @@
 // @name         FJme.me Rating Review
 // @namespace    http://funnyjunk.com/u/FOG
 // @version      2.0
-// @description  Adds button to mark range as reviewed and open range in new tabs
+// @description  Adds button to mark range as reviewed and open range in new tabs on fjme.me and a button to get your review token on funnyjunk.com
 // @author       You
 // @match        https://fjme.me/mods/ratings/*
 // @match        https://funnyjunk.com/*
