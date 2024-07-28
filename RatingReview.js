@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         FJme.me Rating Review
-// @namespace    http://tampermonkey.net/
+// @namespace    http://funnyjunk.com/u/FOG
 // @version      2.0
 // @description  Adds button to mark range as reviewed and open range in new tabs
 // @author       You
