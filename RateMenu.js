@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Modify FJ Rate menu
 // @namespace    http://funnyjunk.com/u/FOG
-// @version      0.3
+// @version      0.7
 // @description  Add custom rate buttons to FunnyJunk
 // @author       FOG
 // @match        https://funnyjunk.com/*
@@ -11,8 +11,7 @@
 (function() {
     'use strict';
 
-    // Function to create and configure new buttons
-    function createNewButton(id, category, shortKeyText, shortRDText, longRDText) {
+    function createNewButton(id, category, shortKeyText, shortRDText, longRDText, catId) {
         var newButton = document.createElement('div');
         newButton.id = id;
         newButton.className = 'ctButton4 desktopRate';
@@ -20,51 +19,127 @@
                               '<span class="shortRD">' + shortRDText + '</span>' +
                               '<span class="longRD">' + longRDText + '</span>/1/1n';
 
-        // Assign onclick function
         newButton.onclick = function() {
-            quickM(category, newButton);
+            // Apply the necessary actions
+            admintools.noIndex(contentId, FJUserId, 1, this, 'skin_level');
+            admintools.noIndex(contentId, FJUserId, 1, this, 'pc_level');
+            admintools.catBlock(catId, this);
+            admintools.noIndex(contentId, FJUserId, 1, this, 'setNoIndex');
+
+            // Add classes for skin_level and pc_level
+            document.getElementById('skinLevel1').classList.add('nsfwBg');
+            document.getElementById('pcLevel1').classList.add('nsfwBg');
+
+            // Add selected class to the appropriate category block
+            var catBlockElements = document.querySelectorAll('#catControls .ctButton4');
+            catBlockElements.forEach(function(el) {
+                if (parseInt(el.getAttribute('data-id')) === catId) {
+                    el.classList.add('selected');
+                }
+            });
+
+            // Move to the next unrated content
+            admintools.getNextUnrated();
         };
 
         return newButton;
     }
 
-    // Main function to add custom buttons to the moderation menu
     function addCustomButtons() {
-        // Find the modRa element
         var modRa = document.getElementById('modRa');
 
         if (modRa) {
-            // Find or create the quickM element within modRa
             var quickMMenu = modRa.querySelector('#quickM');
 
             if (quickMMenu) {
-                // Create new button 7 (animeNO)
-                var button7 = createNewButton('rate7key', 'animeNO', '7', 'a', 'anime');
+                var button7 = createNewButton('rate7key', 'animeNO', '7', 'a', 'anime', 5);
+                var button8 = createNewButton('rate8key', 'gamingNO', '8', 'ga', 'gaming', 1);
+                var button0 = createNewButton('rate0key', 'spicyNO', '0', 'spi', 'spicy', 13);
 
-                // Create new button 8 (gamingNO)
-                var button8 = createNewButton('rate8key', 'gamingNO', '8', 'ga', 'gaming');
-
-                // Insert buttons into the DOM
                 quickMMenu.appendChild(button7);
                 quickMMenu.appendChild(button8);
+                quickMMenu.appendChild(button0);
             }
         }
     }
 
-    // Function to handle keydown events
     function handleKeydown(event) {
-        // Prevent default behavior for testing purposes
-        event.preventDefault();
+        var catBlockElements = document.querySelectorAll('#catControls .ctButton4');
 
-        // Check for numpad and regular number key presses
         if (event.code === 'Numpad8' || (event.key === '8' && event.shiftKey)) {
-            quickM('gamingNO', document.getElementById('rate8key'));
-            event.stopPropagation(); // Stop other handlers from intercepting
+            event.preventDefault(); // Prevent the default behavior
+            admintools.noIndex(contentId, FJUserId, 1, this, 'skin_level');
+            admintools.noIndex(contentId, FJUserId, 1, this, 'pc_level');
+            admintools.catBlock(1, document.getElementById('rate8key'));
+            admintools.noIndex(contentId, FJUserId, 1, this, 'setNoIndex');
+
+            // Add classes for skin_level and pc_level
+            document.getElementById('skinLevel1').classList.add('nsfwBg');
+            document.getElementById('pcLevel1').classList.add('nsfwBg');
+
+            // Add selected class to the gaming category block
+            catBlockElements.forEach(function(el) {
+                if (parseInt(el.getAttribute('data-id')) === 1) {
+                    el.classList.add('selected');
+                }
+            });
+
+            admintools.getNextUnrated();
+        }
+        if (event.code === 'Numpad0' || (event.key === '0' && event.shiftKey)) {
+            event.preventDefault(); // Prevent the default behavior
+            admintools.noIndex(contentId, FJUserId, 1, this, 'skin_level');
+            admintools.noIndex(contentId, FJUserId, 1, this, 'pc_level');
+            admintools.catBlock(13, document.getElementById('rate0key'));
+            admintools.noIndex(contentId, FJUserId, 1, this, 'setNoIndex');
+
+            // Add classes for skin_level and pc_level
+            document.getElementById('skinLevel1').classList.add('nsfwBg');
+            document.getElementById('pcLevel1').classList.add('nsfwBg');
+
+            // Add selected class to the spicy category block
+            catBlockElements.forEach(function(el) {
+                if (parseInt(el.getAttribute('data-id')) === 13) {
+                    el.classList.add('selected');
+                }
+            });
+
+            admintools.getNextUnrated();
         }
     }
 
-    // Add event listener for keydown
-    document.addEventListener('keydown', handleKeydown);
+    // Function to handle scroll events and apply/remove styles
+    function handleScroll() {
+        const modCC = document.querySelector('.modCC');
+        const cControlsCon = document.querySelector('#cControlsCon');
 
+        if (!modCC || !cControlsCon) return;
+
+        const isModFAdded = modCC.classList.contains('modF');
+        const isModF1Added = modCC.classList.contains('modF1');
+
+        if (isModFAdded && isModF1Added) {
+            applyCustomStyles(modCC, cControlsCon);
+        } else {
+            removeCustomStyles(modCC, cControlsCon);
+        }
+    }
+
+    // Function to apply custom styles
+    function applyCustomStyles(modCC, cControlsCon) {
+        modCC.style.top = '117px';
+        cControlsCon.style.top = '263px';
+    }
+
+    // Function to remove custom styles
+    function removeCustomStyles(modCC, cControlsCon) {
+        modCC.style.top = '';
+        cControlsCon.style.top = '';
+    }
+
+    document.addEventListener('keydown', handleKeydown);
     addCustomButtons();
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
 })();
