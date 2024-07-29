@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Modify FJ Rate menu
+// @name         Modify FJ Rate menu + Spicy
 // @namespace    http://funnyjunk.com/u/FOG
-// @version      0.7
+// @version      1.0
 // @description  Add custom rate buttons to FunnyJunk
 // @author       FOG
 // @match        https://funnyjunk.com/*
@@ -15,9 +15,18 @@
         var newButton = document.createElement('div');
         newButton.id = id;
         newButton.className = 'ctButton4 desktopRate';
-        newButton.innerHTML = '<div class="shortKey">' + shortKeyText + '</div>' +
-                              '<span class="shortRD">' + shortRDText + '</span>' +
-                              '<span class="longRD">' + longRDText + '</span>/1/1n';
+
+        if (id === '') {
+            // Specific HTML structure for button0
+            newButton.innerHTML = '<div class="shortKey">' + shortKeyText + '</div>' +
+                                  '<span class="shortRD">' + shortRDText + '</span>' +
+                                  '<span class="longRD">' + longRDText + '</span>/1/1';
+        } else {
+            // Default HTML structure for other buttons
+            newButton.innerHTML = '<div class="shortKey">' + shortKeyText + '</div>' +
+                                  '<span class="shortRD">' + shortRDText + '</span>' +
+                                  '<span class="longRD">' + longRDText + '</span>/1/1n';
+        }
 
         newButton.onclick = function() {
             // Apply the necessary actions
