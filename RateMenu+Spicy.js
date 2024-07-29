@@ -54,9 +54,11 @@
             if (quickMMenu) {
                 var button7 = createNewButton('rate7key', 'animeNO', '7', 'a', 'anime', 5);
                 var button8 = createNewButton('rate8key', 'gamingNO', '8', 'ga', 'gaming', 1);
+                var button0 = createNewButton('rate0key', 'spicyNO', '0', 'spi', 'spicy', 13);
 
                 quickMMenu.appendChild(button7);
                 quickMMenu.appendChild(button8);
+                quickMMenu.appendChild(button0);
             }
         }
     }
@@ -84,9 +86,60 @@
 
             admintools.getNextUnrated();
         }
+        if (event.code === 'Numpad0' || (event.key === '0' && event.shiftKey)) {
+            event.preventDefault(); // Prevent the default behavior
+            admintools.noIndex(contentId, FJUserId, 1, this, 'skin_level');
+            admintools.noIndex(contentId, FJUserId, 1, this, 'pc_level');
+            admintools.catBlock(13, document.getElementById('rate0key'));
+            admintools.noIndex(contentId, FJUserId, 1, this, 'setNoIndex');
+
+            // Add classes for skin_level and pc_level
+            document.getElementById('skinLevel1').classList.add('nsfwBg');
+            document.getElementById('pcLevel1').classList.add('nsfwBg');
+
+            // Add selected class to the spicy category block
+            catBlockElements.forEach(function(el) {
+                if (parseInt(el.getAttribute('data-id')) === 13) {
+                    el.classList.add('selected');
+                }
+            });
+
+            admintools.getNextUnrated();
+        }
+    }
+
+    // Function to handle scroll events and apply/remove styles
+    function handleScroll() {
+        const modCC = document.querySelector('.modCC');
+        const cControlsCon = document.querySelector('#cControlsCon');
+
+        if (!modCC || !cControlsCon) return;
+
+        const isModFAdded = modCC.classList.contains('modF');
+        const isModF1Added = modCC.classList.contains('modF1');
+
+        if (isModFAdded && isModF1Added) {
+            applyCustomStyles(modCC, cControlsCon);
+        } else {
+            removeCustomStyles(modCC, cControlsCon);
+        }
+    }
+
+    // Function to apply custom styles
+    function applyCustomStyles(modCC, cControlsCon) {
+        modCC.style.top = '117px';
+        cControlsCon.style.top = '263px';
+    }
+
+    // Function to remove custom styles
+    function removeCustomStyles(modCC, cControlsCon) {
+        modCC.style.top = '';
+        cControlsCon.style.top = '';
     }
 
     document.addEventListener('keydown', handleKeydown);
     addCustomButtons();
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
 
 })();
