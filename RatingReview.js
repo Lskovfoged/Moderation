@@ -11,6 +11,8 @@
 // @grant        GM_deleteValue
 // @grant        GM_notification
 // @run-at       document-end
+// @updateURL    https://raw.githubusercontent.com/Lskovfoged/Moderation/main/RatingReview.js
+// @downloadURL  https://raw.githubusercontent.com/Lskovfoged/Moderation/main/RatingReview.js
 // ==/UserScript==
 
 (function() {
@@ -116,6 +118,9 @@
                 button.textContent = 'Mark Range as Reviewed';
 
                 button.addEventListener('click', function() {
+                    if (!confirm('Are you sure you want to mark the range as reviewed?')) {
+                        return;
+                    }
                     // Retrieve the Bearer token from Tampermonkey storage
                     const BEARER_TOKEN = GM_getValue(TOKEN_STORAGE_KEY);
 
